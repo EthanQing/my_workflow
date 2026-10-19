@@ -18,6 +18,18 @@ The 0.2.1-rc.2 local `spawn` provider implements continuations automatically; th
 
 Planner, Coder, Reviewer and Git Operator can use the official `send_message` tool to ask their direct parent Lead for a decision, report a blocker or material risk, and Lead can steer them while they work. Knowledge Curator and Project Mentor are completion-only. The call returns delivery confirmation, not a reply. Unrelated or idle roles are not queried, woken or broadcast to; normal completion uses the official notice, and history recovery is only for missing results or a broken connection.
 
+## Task tiers
+
+Lead classifies conservatively before planning and states the tier in the approval summary.
+
+| Tier | Use | Flow |
+| --- | --- | --- |
+| Small | One logical, reversible, small diff; no public API, security/permissions, payment, data/migration, dependency/toolchain, production config, destructive operation or cross-module refactor; knowledge impact none or a small knowledge-only update; verification is inspection or one existing targeted check. | Lead brief -> approval -> Coder (or Curator for a small knowledge-only update) -> Lead check; no Planner or independent Reviewer. |
+| Normal | Ordinary feature or bug fix. | Planner -> approval -> Coder -> optional Curator -> independent Reviewer -> Lead check. |
+| High-risk | Security/permissions, payment, data/migration, destructive operations, public API/contract, dependency/toolchain, production config, cross-module refactor, or large/uncertain diff. | Normal flow plus only the necessary extra verification and explicit risk notes. |
+
+When unsure choose normal or high-risk, never small. Do not downgrade a high-risk task because speed is requested. Scope or risk growth stops work, reclassifies and requires new approval. The user may request the normal/high-risk flow. A small-tier Lead check must inspect the actual diff and targeted evidence; if it cannot verify safely, use the normal flow.
+
 Desktop defaults to `openAt: never` for the search index. Recovery does not enable indexing: Lead reads the original child's raw events with `session_event_read`, starting at `seq: 0, after: 50`, advances using returned event sequence numbers, and fully reads the identified result. Full-text search is optional when available; disabled search falls back to raw reads without spawning another child.
 
 ## Install, update and roll back
