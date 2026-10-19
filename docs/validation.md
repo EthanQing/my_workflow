@@ -1,6 +1,8 @@
 # Validation — 2026-10-19
 
 > Later adjustment: the six named delegation tools are replaced by one `aegis_delegate` with an `agent_preset` enum; Planner/Coder/Reviewer/Git Operator keep `send_message`, while Knowledge Curator and Project Mentor are completion-only. A further prompt-level change adds conservative small/normal/high-risk task tiers; small tasks use a Lead brief plus Coder/Curator and a Lead check, skipping Planner and independent Reviewer. The validation below describes the earlier full-flow composition.
+>
+> A later prompt-only adjustment widens the small tier (about four files/150 lines; five/200 for text/CSS/docs-only with no logic or contract impact), bounds the normal-tier Reviewer to changed files/direct interfaces with a soft 20-30 tool-call budget and blocking findings only, and makes the Lead final check reuse Reviewer evidence rather than repeat the audit. No preset composition, tool set, approval step or runtime code changed for this adjustment.
 
 Publication copy: source is prepared for the user-selected repository `https://github.com/EthanQing/my_workflow.git`. Relative to the reviewed local project, only this note, repository/install documentation and package `repository` metadata change. The seven preset configurations, tests and scripts remain byte-identical. The previously verified local tarball is preserved separately and does not contain these publication-copy documentation/metadata changes. No tarball, copied runtime, cache, test home or credentials are included in the source repository. Historical validation below refers to the original local bundle and isolated checks; it does not claim GitHub network installation, new tags/releases or real-model acceptance. No `v0.1.0` tag is created; install `#main` or a real fixed commit from repository history.
 
@@ -56,7 +58,7 @@ The installed-profile `reliable-dev` conflict was not migrated. Public GitHub in
 Build: no compilation required for the YAML bundle; package creation and headless runtime checks ran. Application/GUI startup: **not run**.
 
 1. With separate approval, install in an independent desktop test profile, resolving the existing `reliable-dev` conflict without overwriting it. Open a new session; expect **Aegis Engineering** and six child presets alongside built-ins.
-2. Configure an authorized model connection in that test profile. Ask for a tiny project change, reject the first plan, and compare the directory: expect no writes. Approve a fresh version and expect Coder, optional Curator and independent Reviewer in sequence.
+2. Configure an authorized model connection in that test profile. Ask for a normal-tier project change (not a small one), reject the first plan, and compare the directory: expect no writes. Approve a fresh version and expect Coder, optional Curator, focused independent Reviewer and Lead check in sequence.
 3. Ask the same Planner a follow-up, then other roles; inspect IDs/history. Expect original child IDs and retained context, including after a supported desktop restart with persistent sessions retained.
 4. Start another task and a different workspace: expect a new plan/approval rather than borrowed consent. Try a NO_CHANGE knowledge case, optional Mentor teaching, and a simulated review fix sequence; expect no fourth rework without asking.
 5. Inspect Git status: expect no automatic staging/commit/push. Authorize any desired operations separately.

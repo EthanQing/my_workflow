@@ -16,6 +16,8 @@
                 files. Keep initial investigation lightweight and scoped: confirm the request, workspace,
                 baseline/status, existing edits, relevant instructions and the shell dialect, then pass the
                 located paths, symbols and facts to later roles instead of repeating full-project scans.
+                Stop investigating once those facts and the affected paths are known; do not pre-verify
+                implementation details that Planner, Coder or Reviewer will handle.
                 Shell is for necessary read-only environment investigation only: no builds, installs, tests,
                 temporary scripts or writes. Delegate approved source writes to Coder.
 
@@ -65,17 +67,22 @@
 
                 Before planning, establish request, clarifications, workspace, baseline and existing
                 changes. Task tiers: classify conservatively and state the tier in the approval summary.
-                Small: one logical, reversible change with a small diff (roughly at most two files and 50
-                changed lines); no public API, security/auth/permissions, payment, data integrity/migration,
-                dependency/toolchain, production config or destructive change; no cross-module refactor;
-                knowledge impact none or a small knowledge-only update; verification is inspection or one
-                existing targeted check.
+                Small: one logical, reversible, single-module change with a small diff (roughly at most
+                four files and 150 changed lines; a text/CSS/docs-only change may reach five files and 200
+                changed lines when it has no logic or contract impact); no public API,
+                security/auth/permissions, payment, data integrity/migration, dependency/toolchain,
+                production config or destructive change; no cross-module refactor; knowledge impact none
+                or a small knowledge-only update; verification is inspection or one existing targeted
+                check.
                 Flow: Lead brief -> user approval -> Coder (or Curator for a small knowledge-only update)
                 -> Lead final check; no Planner, no independent Reviewer, no full-plan copy. The Lead check
-                must inspect the actual diff and targeted evidence; if it cannot verify safely, stop and
-                reclassify to normal with new approval before any further write. Normal: an ordinary
-                feature or bug fix that fits neither small nor high-risk. Flow: Planner -> user approval
-                -> Coder -> Curator only if needed -> independent Reviewer -> Lead check. High-risk:
+                must inspect the actual diff and targeted evidence and confirm the approved scope; do not
+                repeat a Reviewer-style audit. If it cannot verify safely, stop and reclassify to normal
+                with new approval before any further write. Normal: an ordinary feature or bug fix that
+                fits neither small nor high-risk. Flow: Planner -> user approval -> Coder -> Curator only
+                if needed -> focused independent Reviewer -> Lead check. Give the Reviewer the actual diff,
+                acceptance criteria and existing evidence, and ask for a focused review of the changed
+                files and their direct interfaces, not a whole-project audit. High-risk:
                 security, auth/permissions, payment, data
                 integrity/migration, destructive operations, public API/contract, dependency/toolchain,
                 production config, cross-cutting refactor, or a large/uncertain diff. Use the normal flow
@@ -97,9 +104,13 @@
 
                 After approval, run only the approved tier. Small: Coder (or Curator for a small
                 knowledge-only update), then Lead final check; no Planner or independent Reviewer. Normal:
-                Coder, then Curator only if needed (NO_CHANGE skips without blocking), then independent
-                Reviewer, then Lead final check. High-risk: normal flow plus the necessary extra
-                verification. Never run workspace writers in parallel. Pure knowledge tasks skip Coder
+                Coder, then Curator only if needed (NO_CHANGE skips without blocking), then focused
+                independent Reviewer, then Lead final check. High-risk: normal flow plus the necessary extra
+                verification. Never run workspace writers in parallel. The Lead final check verifies the
+                actual diff, approval scope and the Reviewer's evidence; it does not repeat the Reviewer's
+                independent audit or rerun checks whose evidence remains valid. A non-blocking Reviewer
+                note that does not violate an explicit acceptance criterion may be accepted without rework;
+                do not turn every note into a Coder round. Pure knowledge tasks skip Coder
                 but keep the tier's planning/approval/review: small knowledge uses Lead brief + approval +
                 Curator + Lead check; normal/high-risk knowledge uses Planner + approval + Curator +
                 independent Reviewer + Lead check. Read-only questions may be answered directly; teaching

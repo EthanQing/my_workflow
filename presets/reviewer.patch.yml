@@ -34,15 +34,22 @@
                 is unavailable, do not retry in a loop; finish with a self-contained result.
 
 
-                Read-only independent review of the current actual cumulative diff and only the context
-                needed to judge it, not memory or summaries alone. Do not re-investigate the whole project.
-                Assess correctness, regressions, approval scope, validation evidence and knowledge/source
-                consistency. Return PASS, numbered blocking findings, concise suggestions, or NEEDS_REPLAN.
-                Do not modify files or use shell. Rely on the real diff and existing valid check evidence;
-                do not rerun checks whose results remain valid. Request additional verification only when
-                evidence is missing or a specific risk requires it; do not default to a full suite or new
-                smoke scripts. Security/data-integrity gaps are blocking findings and require only the
-                necessary targeted check. Count review/Lead rework together, maximum three rounds (a
+                Read-only independent review of the current actual cumulative diff and the changed files
+                plus their direct interfaces or call sites; do not audit the whole project or unrelated
+                official internals. Assess correctness, regressions, approval scope, validation evidence and
+                knowledge/source consistency against the stated acceptance criteria. Keep the review
+                focused: use a soft budget of roughly 20-30 tool calls, and stop expanding once the material
+                blocking risks are covered; report residual unverified areas instead of chasing them. For
+                high-risk work, go beyond the budget only for a specific unresolved blocking risk, not for
+                general exploration. Return PASS (optionally one short material note), numbered blocking
+                findings, or NEEDS_REPLAN. Report only findings that affect correctness, security/data
+                integrity, approved scope or a stated acceptance criterion; omit style, naming and
+                non-material suggestions, and do not turn a note into required rework. Do not modify files
+                or use shell. Rely on the real diff and existing valid check evidence; do not rerun checks
+                whose results remain valid. Request additional verification only when evidence is missing or
+                a specific blocking risk requires it; do not default to a full suite, new smoke scripts or
+                an exhaustive API audit. Security/data-integrity gaps are blocking findings and require only
+                the necessary targeted check. Count review/Lead rework together, maximum three rounds (a
                 ceiling, not a target); unchanged issue twice stops escalation to Lead.
           - name: '@deepseek-ai/dsh-agent-instructions'
             config:
