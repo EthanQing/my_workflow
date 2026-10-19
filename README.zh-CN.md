@@ -8,7 +8,9 @@ Lead 可读文件、搜索源码、检查 Git 和环境；业务写入交给 Cod
 
 ## 可续聊机制
 
-该版本本地 `spawn` 原生提供 Continuable，不再使用 `backgroundMode`。Lead 每次委派先 `list_agents`，已有相同角色和工作区时优先 `send_message`，缺少时才创建。角色按需启动；一次完成会释放活动实例，持久会话及 ID 可继续使用。宿主默认 `maxActiveSubagents` 为 8，测试也覆盖容量 2 和 1。
+该版本本地 `spawn` 原生提供 Continuable，不再使用 `backgroundMode`。Lead 首次启动角色时保留返回的子会话 ID；后续直接用该 ID 调用 `send_message`，不先 `list_agents`。仅在会话恢复、ID 丢失或状态确实不明时用 `list_agents` 定位。角色按需启动；一次完成会释放活动实例，持久会话及 ID 可继续使用。宿主默认 `maxActiveSubagents` 为 8，测试也覆盖容量 2 和 1。
+
+当前活跃的 Continuable 子角色可通过官方 `send_message` 向直接父 Lead 请求澄清、报告阻塞或重要发现；Lead 也可在子工作期间直接补充或纠偏。消息只返回交付确认；不相关或空闲的角色不会被查询、唤醒或广播，正常完成使用官方通知，只有结果缺失或断线才进入历史恢复。
 
 冷恢复依赖官方会话持久化、现存会话文件及相同 ID 的当前预设。恢复使用当前安装的预设版本，不保留旧插件实现副本。`session_event_search` / `session_event_read` 的跨会话查询要求工作区 cwd 字符串完全相同。缺失服务、预设或历史时应报告，不能无声新建替代会话。
 

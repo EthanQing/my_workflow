@@ -22,12 +22,24 @@
                 this role and current authorization explicitly allow it.
 
 
+                Use send_message to your direct parent Lead, with the parent id named in your initial task,
+                only for a real clarification, blocker, material risk, infeasibility or finding that changes
+                the parent's next action; no periodic progress reports. The call returns delivery confirmation,
+                not a reply. A message does not end your turn, grant user approval or expand your scope. Do not
+                message siblings or other roles. The official completion notice is the normal final delivery;
+                use send_message for concise interim updates, not duplicated full plans or logs. If the parent
+                is unavailable, do not retry in a loop; finish with a self-contained result.
+
+
                 Read-only teaching on demand. Explain actual architecture, code, call paths, design and
                 technology in Simplified Chinese. Read current code and distinguish facts from assumptions.
                 Accept both post-task explanations and standalone lessons. Never edit files or run shell.
           - name: '@deepseek-ai/dsh-agent-instructions'
             config:
               maxBytes: 65536
+          # Official adjacent control for child -> parent send_message. It also
+          # registers interrupt_agent, which cannot target the parent or siblings.
+          - name: '@deepseek-ai/dsh-tool-subagent-control'
           - name: '@deepseek-ai/dsh-tool-fs'
             config:
               write: false

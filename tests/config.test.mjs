@@ -44,6 +44,21 @@ test('read-only presets have no shell or file-write surfaces; writers remain sep
       assert.equal(fs.edit, false);
     }
     if (['aegis-planner','aegis-reviewer','aegis-project-mentor','aegis-knowledge-curator'].includes(row.config.id)) assert(!plugins.some(p => /tool-(bash|pwsh)/.test(p.name)));
-    if (row.config.id !== 'reliable-dev') assert(!plugins.some(p => /tool-subagent/.test(p.name)));
+    if (row.config.id !== 'reliable-dev') assert(!plugins.some(p => p.name === '@deepseek-ai/dsh-tool-subagent'));
   }
+});
+
+test('children get adjacent send_message control, not discovery or delegation', () => {
+  const rows = declarations();
+  const children = rows.filter(row => row.config.id !== 'reliable-dev');
+  assert.equal(children.length, 6);
+  for (const row of children) {
+    const plugins = row.config.plugins;
+    assert.equal(plugins.filter(p => p.name === '@deepseek-ai/dsh-tool-subagent-control').length, 1, row.config.id);
+    assert(!plugins.some(p => p.name === '@deepseek-ai/dsh-tool-subagent-control/list-agents'), row.config.id);
+    assert(!plugins.some(p => p.name === '@deepseek-ai/dsh-tool-subagent'), row.config.id);
+  }
+  const lead = rows.find(row => row.config.id === 'reliable-dev');
+  assert(lead.config.plugins.some(p => p.name === '@deepseek-ai/dsh-tool-subagent-control'));
+  assert(lead.config.plugins.some(p => p.name === '@deepseek-ai/dsh-tool-subagent-control/list-agents'));
 });
