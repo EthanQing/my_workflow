@@ -40,9 +40,17 @@ dsh plugin --profile <profile> add github:EthanQing/my_workflow#<actual-commit-s
 
 ## Windows 与工具边界
 
-角色先检查实际注册工具，Windows 优先使用可用 Git Bash；桌面默认通常提供官方 PowerShell 工具，可探测 Git Bash 后显式调用。插件不假设某个工具名永远存在，不固化本机可执行文件路径，也不替换全局 Shell provider。
+Windows 宿主以 DSH desktop 0.2.1-rc.2 + `dsh-gitbash-shell` 0.38.5 为已验证组合。插件把进程级 `ctx.shell` 换成 Git for Windows bash（`bash.exe -c`，当前解析到 `C:/Program Files/Git/bin/bash.exe`），并在会话创建时把“有 pwsh、无 bash”的工具面替换为官方 `bash` 工具、遮蔽伪 `pwsh`。因此 Lead、Coder、Git Operator 在 Windows 上应看到 **`bash`**（MSYS 路径，如 `/c/Users/...`），必须使用 bash 语法；不得对 `bash` 写 PowerShell 语法，也不得把 `pwsh` 当作 Git Bash 使用。若工具面只剩真正的 `pwsh`，说明 Git Bash 集成未生效：使用 PowerShell 方言时须明确说明这一限制，不要伪造工具名。
+
+三个有 Shell 的角色保留官方平台工具行（win32 下 `tool-pwsh`、非 win32 下 `tool-bash`）；这是 `dsh-gitbash-shell` 行内补丁的输入，不是最终模型工具名。不要把它静态翻成 `tool-bash`：在未装或未启用 Git Bash 执行器的 Windows profile 上，`bash` 工具会落到 pwsh 执行器，反而制造错配。插件不固化本机可执行文件路径；未安装该插件的 Windows profile 不在本次验证范围内。
 
 支持的 Desktop/Web 组合会禁用 base 层全局模型工具，由各预设提供工具。裸 base 宿主不属于支持范围；用户另装的全局工具插件也可能扩大实际暴露面。Planner、Reviewer、Mentor 没有 Shell 或文件写入工具。Lead/Git Operator 不装文件写入工具。Coder 和 Curator 都有文件写工具，但知识库/源码职责分离、串行写入和审批属于提示词规则；Shell 也能写文件，**这些规则不是系统级权限隔离**。应配合 DSH 宿主权限配置。真实模型是否遵守流程需另做验收。
+
+## 日常执行边界
+
+日常开发遵循最小充分验证：文档、注释、简单文案修改只检查修改内容；小范围代码修复优先用一项已有针对性检查；一般功能执行一次最相关的构建或测试；高风险改动只补真正必要的验证；用户明确要求全面测试时按要求执行。默认不新建烟测脚本、不跑全量套件、不重复相同构建、不引入新测试框架或依赖、不做无关检查、不为小任务生成大量报告。确实需要临时验证文件时放在 OS 临时目录，结束前清理自己创建的文件；不得留在业务项目目录，不得改写 `.gitignore` 隐藏，不得用 `git clean` 或通配符删除处理项目文件，也不得删除用户已有文件或合法构建产物。Reviewer 和 Lead 不重复已执行且结果仍有效的检查；安全/数据完整性等高风险改动的关键验证不能省略，未执行项必须如实列为限制。
+
+这些是提示词行为约束，不是系统级强制执行；宿主权限和用户审批仍是最终边界。
 
 ## 测试与人工验收
 

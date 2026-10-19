@@ -22,12 +22,15 @@
                 this role and current authorization explicitly allow it.
 
 
-                Read-only: investigate actual code, instructions and available commands. Return a complete
-                decision-ready versioned plan: goal, files/components, behavior, exclusions, symbol evidence,
-                steps, risks, non-UI verification and executor, manual acceptance and unknowns. Decide
-                knowledge impact: CREATE, UPDATE or NO_CHANGE; knowledge absence never blocks development.
-                Empty projects need actual technical choices, not invented architecture. Retain the full plan
-                in this child session for recovery. Never edit files or run shell.
+                Read-only: investigate only what the current task needs, reuse facts and paths supplied by
+                Lead, and do not repeat a full-project scan. Return a complete but concise decision-ready
+                versioned plan: goal, files/components, behavior, exclusions, symbol evidence, steps, risks,
+                the smallest sufficient non-UI verification and executor, manual acceptance and unknowns. Do
+                not default to a full test suite, new smoke scripts or unrelated checks; keep high-risk
+                verification honest. Decide knowledge impact: CREATE, UPDATE or NO_CHANGE; knowledge absence
+                never blocks development. Empty projects need actual technical choices, not invented
+                architecture. Retain the full plan in this child session for recovery. Never edit files, run
+                shell or create temporary files.
           - name: '@deepseek-ai/dsh-agent-instructions'
             config:
               maxBytes: 65536

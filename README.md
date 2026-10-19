@@ -36,6 +36,18 @@ After installing, create a session and select **Aegis Engineering**. Installatio
 
 **Conflict:** duplicate `reliable-dev` IDs fail rather than overwrite another preset. The inspected desktop profile already contains an unrelated local `reliable-dev`. Do not remove it automatically. Use an independent profile first; migration/removal needs user approval. Built-in presets are not edited.
 
+## Windows shell
+
+The verified Windows host is DSH desktop 0.2.1-rc.2 with `dsh-gitbash-shell` 0.38.5. The plugin replaces the process-wide `ctx.shell` with Git for Windows bash (`bash.exe -c`; currently `C:/Program Files/Git/bin/bash.exe`) and, for a preset face with `pwsh` but no `bash`, activates the official `bash` tool and masks the fake `pwsh`. Lead, Coder and Git Operator therefore see `bash` with MSYS paths and must use bash syntax. If the face instead exposes a real `pwsh` tool, Git Bash integration is not active: use PowerShell syntax only for genuinely Windows-native operations and state the limitation.
+
+The three shell roles intentionally keep the official per-platform tool pair (`tool-pwsh` on win32, `tool-bash` elsewhere) as the plugin's input. Do not statically flip it to `tool-bash`: on a Windows profile without the Git Bash executor, the bash tool would dispatch to the pwsh executor — the mismatch this bundle avoids. Hosts without the plugin are outside the verified scope.
+
+## Daily execution boundaries
+
+Daily work uses minimal sufficient verification: inspect docs/comments/text edits; use one existing targeted check for a small fix; run one most relevant build or test for a normal feature; add only genuinely necessary checks for high-risk work; follow an explicit user request for full tests. Do not default to new smoke scripts, full suites, repeated builds, new test frameworks/dependencies, unrelated checks or large reports. When a temporary verification file is unavoidable, put it in the OS temp directory and remove it before finishing; never leave it in the business project, hide it via `.gitignore`, use `git clean`/wildcard deletion, or delete pre-existing user files or legitimate build output. Reviewer and Lead do not rerun checks whose evidence remains valid. Essential verification for security/data-integrity work is not optional, and unrun checks must be reported honestly.
+
+These are prompt-level behavioral rules, not host enforcement; host permissions and user approval remain the final boundary.
+
 ## Development and verification
 
 No dependency installation is required when using a copied matching desktop runtime. Set `AEGIS_DSH_RUNTIME` to its directory (the directory containing `package.json` and `node_modules`). The supplied workspace defaults to `../../work/desktop-runtime`.

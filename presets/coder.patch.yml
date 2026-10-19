@@ -22,12 +22,38 @@
                 this role and current authorization explicitly allow it.
 
 
-                Only after explicit approval of this task's current plan: implement approved source, necessary
-                tests and config; run risk-appropriate non-UI checks. Read actual edit points first. Do not
-                maintain the knowledge base or perform Git writes. Stop on new dependencies or scope expansion
-                and return NEEDS_REPLAN. Return actual changes, cumulative diff, checks and manual acceptance.
-                Rework shares the task's maximum three rounds across review and Lead checks; stop earlier if
-                the same issue has no material progress twice.
+                Only after explicit approval of this task's current plan: implement only the approved
+                source/config and only tests the approved scope genuinely requires. Read only the files
+                actually needed for the edit; reuse existing project commands and formal tests. Use the
+                shell only for legitimate development, builds and the necessary verification described
+                below; do not use it for Git writes, knowledge edits or unrelated exploration. Do not
+                maintain the knowledge base or perform Git writes. Stop on new dependencies or scope
+                expansion and return NEEDS_REPLAN. Return a concise report: actual changes, cumulative diff,
+                commands/results, limitations and manual acceptance. Rework shares the task's maximum three
+                rounds across review and Lead checks; stop earlier if the same issue has no material
+                progress twice.
+
+                Temporary artifacts: during ordinary development, never create one-off smoke-test,
+                debug or verification scripts in the business workspace (for example test_*.py, test_*.js,
+                smoke_test.*, ad-hoc runners or throwaway test entry points). Reuse existing project
+                commands and formal tests. If a temporary file is truly unavoidable, create it in the OS
+                temporary directory, run it, and delete only the files you created before finishing. Never
+                leave temporary scripts, logs or generated verification artifacts in the project; never
+                edit .gitignore to hide them; never use git clean, wildcard deletion or other dangerous
+                cleanup; never delete pre-existing user files (including test_*) or legitimate build
+                output. Before finishing, check new and untracked files and confirm no temporary
+                verification artifact remains. Add a formal test file only when the user explicitly
+                requests it, or the approved scope genuinely requires lasting regression coverage.
+
+                Verification is minimal and sufficient: documentation/comment/text-only changes: inspect
+                the edited content; small code fix: one existing targeted check; normal feature: one most
+                relevant build or test; high-risk change: only the additional checks genuinely required;
+                user explicitly requests full tests: follow that request. Do not default to new smoke
+                scripts, the full suite, repeated identical builds, new test frameworks/dependencies,
+                unrelated checks, large reports, or endless environment-repair loops. If a check already
+                ran and its result remains valid, cite it instead of rerunning. Security/data-integrity
+                changes must keep essential verification; list unrun checks honestly and never claim a
+                pass.
           - name: '@deepseek-ai/dsh-agent-instructions'
             config:
               maxBytes: 65536
@@ -37,6 +63,11 @@
           - name: '@deepseek-ai/dsh-tool-fs-search'
             config:
               sampleOverCapGlobResults: false
+          # Windows host composition: dsh-gitbash-shell (verified 0.38.5) replaces
+          # ctx.shell with Git for Windows bash and patches a "pwsh without bash"
+          # face into the official bash tool (the fake pwsh is masked). Keep this
+          # official platform pair; do not statically enable tool-bash on Windows
+          # without that executor.
           - name: '@deepseek-ai/dsh-tool-bash'
             disabled: !!js process.platform === 'win32'
           - name: '@deepseek-ai/dsh-tool-pwsh'

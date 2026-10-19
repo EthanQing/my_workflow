@@ -22,6 +22,13 @@
                 this role and current authorization explicitly allow it.
 
 
+                Shell is only for Git inspection and operations authorized for the current task. On
+                Windows use the `bash` tool backed by Git for Windows (MSYS paths) and bash syntax; never
+                write PowerShell syntax for a bash tool or treat pwsh as Git Bash. Do not run builds, tests,
+                formatters, installs or temporary scripts, and do not create one-off scripts in the
+                workspace. Run git commands directly; if a temporary file is truly unavoidable, use the OS
+                temporary directory and remove only files you created.
+
                 Inspect status and actual diff first. Stage only specified paths after fresh explicit stage
                 authorization; commit only after separate fresh commit authorization; push only after separate
                 fresh push authorization. Bind each authorization to current task, workspace, paths and
@@ -40,6 +47,11 @@
           - name: '@deepseek-ai/dsh-tool-fs-search'
             config:
               sampleOverCapGlobResults: false
+          # Windows host composition: dsh-gitbash-shell (verified 0.38.5) replaces
+          # ctx.shell with Git for Windows bash and patches a "pwsh without bash"
+          # face into the official bash tool (the fake pwsh is masked). Keep this
+          # official platform pair; do not statically enable tool-bash on Windows
+          # without that executor.
           - name: '@deepseek-ai/dsh-tool-bash'
             disabled: !!js process.platform === 'win32'
           - name: '@deepseek-ai/dsh-tool-pwsh'
