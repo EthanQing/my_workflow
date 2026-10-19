@@ -133,7 +133,7 @@ test('official desktop loader and six continuable roles', { timeout: 120000 }, a
   assert.equal((await cold.subagents.listChildren(lead.id)).length, 6);
 });
 
-test('Lead official six delegation tools route to independent child presets', { timeout: 120000 }, async t => {
+test('Lead generic aegis_delegate routes to all six child presets', { timeout: 120000 }, async t => {
   const base = resolve(process.env.AEGIS_TEST_HOME || '../../work/runtime-test-home');
   mkdirSync(base, { recursive: true });
   const directory = mkdtempSync(join(base, 'tools-'));
@@ -147,9 +147,8 @@ test('Lead official six delegation tools route to independent child presets', { 
   const { agent } = await parent(ctx, cwd, 'tool-lead');
   const ids = [];
   for (const row of declarations().filter(row => row.config.id !== 'reliable-dev')) {
-    const name = row.config.id.replace('aegis-', 'aegis_').replaceAll('-', '_');
-    adapter.actions.push({ name, args: { description: row.config.id, prompt: 'Read-only lifecycle test: no file changes, no Git operation.' } });
-    agent.followup(createUserMessage({ content: [{ type: 'text', text: 'Exercise ' + name }], source: { kind: 'user' } }));
+    adapter.actions.push({ name: 'aegis_delegate', args: { description: row.config.id, prompt: 'Read-only lifecycle test: no file changes, no Git operation.', agent_preset: row.config.id } });
+    agent.followup(createUserMessage({ content: [{ type: 'text', text: 'Exercise ' + row.config.id }], source: { kind: 'user' } }));
     await settle(ctx, agent);
     const catalog = await ctx.subagents.listChildren(agent.id);
     const child = catalog.find(child => child.label === row.config.id);
@@ -164,5 +163,5 @@ test('Lead official six delegation tools route to independent child presets', { 
     assert.equal((await ctx.subagents.listChildren(agent.id)).length, ids.length);
   }
   assert.equal(new Set(ids).size, 6);
-  console.log('all six official delegation tools and send_message passed with maxActiveSubagents=1');
+  console.log('all six child presets via aegis_delegate and send_message passed with maxActiveSubagents=1');
 });

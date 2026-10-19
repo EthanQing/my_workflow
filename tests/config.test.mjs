@@ -13,12 +13,14 @@ test('bundle declares seven unique independent presets using current API', () =>
   const lead = rows.find(row => row.config.id === 'reliable-dev');
   assert.equal(lead.config.name, 'Aegis Engineering');
   const delegates = lead.config.plugins.filter(p => p.name === '@deepseek-ai/dsh-tool-subagent');
-  assert.equal(delegates.length, 6);
-  for (const entry of delegates) {
-    assert.equal(entry.config.provider, 'spawn');
-    assert(rows.some(row => row.config.id === entry.config.agentPreset));
-    for (const obsolete of ['backgroundMode', 'persona', 'toolFilter']) assert(!(obsolete in entry.config));
-  }
+  assert.equal(delegates.length, 1);
+  const delegate = delegates[0].config;
+  assert.equal(delegate.provider, 'spawn');
+  assert.equal(delegate.toolName, 'aegis_delegate');
+  assert.equal(delegate.agentPreset, 'aegis-planner');
+  assert.deepEqual(delegate.allowedAgentPresets, ['aegis-planner','aegis-coder','aegis-knowledge-curator','aegis-reviewer','aegis-project-mentor','aegis-git-operator']);
+  for (const id of delegate.allowedAgentPresets) assert(rows.some(row => row.config.id === id));
+  for (const obsolete of ['backgroundMode', 'persona', 'toolFilter']) assert(!(obsolete in delegate));
 });
 
 test('official desktop/web composition disables host-global mutation and delegation tools', async () => {
@@ -48,13 +50,15 @@ test('read-only presets have no shell or file-write surfaces; writers remain sep
   }
 });
 
-test('children get adjacent send_message control, not discovery or delegation', () => {
+test('only chat-capable children get send_message control; none get discovery or delegation', () => {
   const rows = declarations();
   const children = rows.filter(row => row.config.id !== 'reliable-dev');
+  const chatRoles = new Set(['aegis-planner','aegis-coder','aegis-reviewer','aegis-git-operator']);
   assert.equal(children.length, 6);
   for (const row of children) {
     const plugins = row.config.plugins;
-    assert.equal(plugins.filter(p => p.name === '@deepseek-ai/dsh-tool-subagent-control').length, 1, row.config.id);
+    const hasControl = plugins.some(p => p.name === '@deepseek-ai/dsh-tool-subagent-control');
+    assert.equal(hasControl, chatRoles.has(row.config.id), row.config.id);
     assert(!plugins.some(p => p.name === '@deepseek-ai/dsh-tool-subagent-control/list-agents'), row.config.id);
     assert(!plugins.some(p => p.name === '@deepseek-ai/dsh-tool-subagent'), row.config.id);
   }
