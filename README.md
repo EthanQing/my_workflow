@@ -1,0 +1,63 @@
+# Aegis Engineering
+
+[简体中文](README.zh-CN.md)
+
+A configuration-only DeepSeek Harness Plugin Bundle: Lead (`reliable-dev`, displayed as **Aegis Engineering**) and six independent, continuable local subagent presets. Target: **DSH desktop 0.2.1-rc.2**, build `332895e0f7c9d4dbfb29729f5eb367fa263ff986`. Older global CLI releases are not supported. No core changes, custom session database, runtime plugin, installation scripts or machine-specific paths.
+
+| Preset | Responsibility |
+| --- | --- |
+| `reliable-dev` | Investigate, obtain approval, coordinate, recover and deliver |
+| `aegis-planner` | Read-only investigation and complete versioned plan |
+| `aegis-coder` | Approved source/config/tests and non-UI checks |
+| `aegis-knowledge-curator` | Approved knowledge documentation, or NO_CHANGE |
+| `aegis-reviewer` | Independent current-diff review |
+| `aegis-project-mentor` | Read-only teaching in Chinese |
+| `aegis-git-operator` | Separately authorized stage, commit and push |
+
+The 0.2.1-rc.2 local `spawn` provider implements continuations automatically; the obsolete `backgroundMode` field is deliberately absent. Lead checks `list_agents`, then reuses matching role/workspace IDs through `send_message`. A finished activation releases execution resources; persisted sessions survive and can resume. The six roles start only when needed. The host's default `maxActiveSubagents` is 8; tests also exercise limits of 2 and 1. Cold recovery requires retained session storage and the same available preset IDs; it mounts the currently installed preset revision, not a frozen copy of an older bundle.
+
+Desktop defaults to `openAt: never` for the search index. Recovery does not enable indexing: Lead reads the original child's raw events with `session_event_read`, starting at `seq: 0, after: 50`, advances using returned event sequence numbers, and fully reads the identified result. Full-text search is optional when available; disabled search falls back to raw reads without spawning another child.
+
+## Install, update and roll back
+
+Source repository: [EthanQing/my_workflow](https://github.com/EthanQing/my_workflow). The bundle package name remains `dsh-aegis-engineering`. No `v0.1.0` tag or GitHub Release has been created. Changing your desktop installation or replacing an existing preset requires separate authorization.
+
+Use the **matching desktop carrier's plugin installation interface**, select the intended profile, and supply a local bundle path or the release source. Do not use an older global `dsh` CLI to manage a desktop profile. A matching standalone 0.2.1-rc.2 carrier accepts:
+
+```text
+dsh plugin --profile <profile> add /absolute/path/to/dsh-aegis-engineering
+dsh plugin --profile <profile> add github:EthanQing/my_workflow#main
+dsh plugin --profile <profile> add github:EthanQing/my_workflow#<actual-commit-sha>
+```
+
+After installing, create a session and select **Aegis Engineering**. Installation declares the preset automatically; it does not change your default selection. Host prerequisites are the desktop's official preset registry, local spawn/subagent services, filesystem/search, session persistence/query and shell providers. Do not install this bundle into an empty Cordis kernel without these services.
+
+`main` is a moving branch. For reproducible installation, replace `<actual-commit-sha>` with a real commit from the repository history; do not type the placeholder literally. Update by installing a newer verified commit, or roll back by installing the previously recorded commit. Verify the seven presets and begin a new session. Preserve session storage, your profile patch and the prior commit before updating. GitHub network installation and update/rollback have not been runtime-tested. For removal use `dsh plugin --profile <profile> remove dsh-aegis-engineering` in a matching carrier. Existing sessions may need the presets restored before they can resume.
+
+**Conflict:** duplicate `reliable-dev` IDs fail rather than overwrite another preset. The inspected desktop profile already contains an unrelated local `reliable-dev`. Do not remove it automatically. Use an independent profile first; migration/removal needs user approval. Built-in presets are not edited.
+
+## Development and verification
+
+No dependency installation is required when using a copied matching desktop runtime. Set `AEGIS_DSH_RUNTIME` to its directory (the directory containing `package.json` and `node_modules`). The supplied workspace defaults to `../../work/desktop-runtime`.
+
+```text
+npm test
+npm run test:runtime
+npm pack --dry-run
+```
+
+`AEGIS_TEST_HOME` optionally selects a new isolated test directory. Tests write only there and under the copied runtime's `aegis-test-configs/`; never point this at your installed runtime or personal home. The runtime runner sets `DSH_HOME` for its child process. Test fixtures supply deterministic model output and never load account credentials. See [validation](docs/validation.md) for actual results, installation limitations and manual checks; [architecture](docs/architecture.md) describes boundaries.
+
+This is prompt-driven coordination, not a hardened permission system. The supported Desktop/Web composition disables base-global model tools and lets presets own their surfaces. A bare base host or additional globally registered tools can expose extra capabilities and is outside this tool-boundary guarantee. Coder/Git shell access and Curator path restrictions require correct model behavior and host permissions. Read-only presets omit mutation and shell tools, but prompts are not an OS sandbox. No real-model behavioral acceptance is claimed.
+
+## References
+
+- [Official repository](https://github.com/deepseek-ai/deepseek-harness)
+- [Plugin publishing](https://deepseek-harness.github.io/deepseek-harness/develop/basic/publish)
+- [Agent Preset](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/preset/agent-preset/README.md)
+- [Subagent mechanism](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/subagent/subagent/README.md)
+- [Delegation tool](https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/subagent/tool-subagent/README.md)
+- [Tool catalog](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/tool-catalog.md)
+- [Subagent subsystem](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/subsystems/subagent.md)
+
+Current master references can change; the installed desktop build above is the implementation baseline. License has not been selected; the package is marked UNLICENSED pending a release decision.

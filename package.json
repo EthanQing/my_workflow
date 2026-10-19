@@ -1,0 +1,37 @@
+{
+  "name": "dsh-aegis-engineering",
+  "version": "0.1.0",
+  "description": "Continuable six-role software engineering presets for DeepSeek Harness desktop",
+  "type": "module",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EthanQing/my_workflow.git"
+  },
+  "engines": {
+    "dsh": "0.2.1-rc.2"
+  },
+  "files": [
+    "presets/",
+    "README.md",
+    "README.zh-CN.md",
+    "docs/"
+  ],
+  "scripts": {
+    "test": "node --test tests/config.test.mjs",
+    "test:runtime": "node scripts/test-runtime.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": [
+        "./presets/lead.patch.yml",
+        "./presets/planner.patch.yml",
+        "./presets/coder.patch.yml",
+        "./presets/knowledge-curator.patch.yml",
+        "./presets/reviewer.patch.yml",
+        "./presets/project-mentor.patch.yml",
+        "./presets/git-operator.patch.yml"
+      ]
+    }
+  }
+}
