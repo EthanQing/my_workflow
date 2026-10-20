@@ -36,17 +36,13 @@ test('official desktop loader and six continuable roles', { timeout: 120000 }, a
     assert(adapter.requests.some(request => JSON.stringify(request).includes(marker)));
     const request = adapter.requests.at(-1);
     const toolNames = request.tools?.map(tool => tool.name) || [];
-    if (['aegis-planner','aegis-reviewer','aegis-project-mentor'].includes(row.config.id)) {
-      assert(!toolNames.some(name => /write|edit|bash|pwsh/.test(name)), JSON.stringify(toolNames));
-      assert(toolNames.length > 0);
-    }
     assert(toolNames.includes('working_directory'), 'desktop enabled global working-directory tool is retained');
-    if (['aegis-coder','aegis-knowledge-curator'].includes(row.config.id)) assert(toolNames.includes('write') && toolNames.includes('edit'));
-    else assert(!toolNames.includes('write') && !toolNames.includes('edit'));
-    if (['aegis-coder','aegis-git-operator'].includes(row.config.id)) assert(toolNames.includes(process.platform === 'win32' ? 'pwsh' : 'bash'));
-    else assert(!toolNames.includes('bash') && !toolNames.includes('pwsh'));
+    assert(toolNames.includes('write') && toolNames.includes('edit'), row.config.id + ': unified file writes');
+    assert(toolNames.includes(process.platform === 'win32' ? 'pwsh' : 'bash'), row.config.id + ': unified platform shell');
+    assert(!toolNames.includes(process.platform === 'win32' ? 'bash' : 'pwsh'), row.config.id + ': opposite platform shell stays off');
+    assert(!toolNames.includes('aegis_delegate'), row.config.id + ': children cannot delegate');
     const before = adapter.requests.length;
-    await ctx.subagents.sendMessage(lead, result.childId, [{ type: 'text', text: 'Second legal read-only assignment. Recall the first marker.' }], { signal: new AbortController().signal });
+    await ctx.subagents.sendMessage(lead, result.childId, [{ type: 'text', text: 'Second legal assignment. Recall the first marker.' }], { signal: new AbortController().signal });
     await settle(ctx, lead);
     assert(adapter.requests.length > before);
     assert(adapter.requests.slice(before).some(request => JSON.stringify(request).includes(marker)), 'first-round history survives');
@@ -147,7 +143,7 @@ test('Lead generic aegis_delegate routes to all six child presets', { timeout: 1
   const { agent } = await parent(ctx, cwd, 'tool-lead');
   const ids = [];
   for (const row of declarations().filter(row => row.config.id !== 'reliable-dev')) {
-    adapter.actions.push({ name: 'aegis_delegate', args: { description: row.config.id, prompt: 'Read-only lifecycle test: no file changes, no Git operation.', agent_preset: row.config.id } });
+    adapter.actions.push({ name: 'aegis_delegate', args: { description: row.config.id, prompt: 'Lifecycle test: no file changes, no Git operation.', agent_preset: row.config.id } });
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'Exercise ' + row.config.id }], source: { kind: 'user' } }));
     await settle(ctx, agent);
     const catalog = await ctx.subagents.listChildren(agent.id);
@@ -157,7 +153,7 @@ test('Lead generic aegis_delegate routes to all six child presets', { timeout: 1
     assert.equal(observation.header.agentPreset, row.config.id);
     observation[Symbol.dispose]();
     ids.push(child.id);
-    adapter.actions.push({ name: 'send_message', args: { agent_id: child.id, message: 'Second read-only task in the same child.' } });
+    adapter.actions.push({ name: 'send_message', args: { agent_id: child.id, message: 'Second follow-up task in the same child.' } });
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'Reuse existing child' }], source: { kind: 'user' } }));
     await settle(ctx, agent);
     assert.equal((await ctx.subagents.listChildren(agent.id)).length, ids.length);

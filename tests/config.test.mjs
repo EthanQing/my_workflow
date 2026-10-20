@@ -37,15 +37,21 @@ test('official desktop/web composition disables host-global mutation and delegat
   assert(entries.some(row => row.config?.id === 'standard'));
 });
 
-test('read-only presets have no shell or file-write surfaces; writers remain separate', () => {
+test('all seven presets share workspace fs/search and platform shell; only Lead delegates', () => {
   for (const row of declarations()) {
     const plugins = row.config.plugins;
-    if (['aegis-planner','aegis-reviewer','aegis-project-mentor','reliable-dev','aegis-git-operator'].includes(row.config.id)) {
-      const fs = plugins.find(p => p.name === '@deepseek-ai/dsh-tool-fs').config;
-      assert.equal(fs.write, false);
-      assert.equal(fs.edit, false);
-    }
-    if (['aegis-planner','aegis-reviewer','aegis-project-mentor','aegis-knowledge-curator'].includes(row.config.id)) assert(!plugins.some(p => /tool-(bash|pwsh)/.test(p.name)));
+    const fs = plugins.find(p => p.name === '@deepseek-ai/dsh-tool-fs');
+    assert(fs, row.config.id);
+    assert.notEqual(fs.config?.write, false, row.config.id);
+    assert.notEqual(fs.config?.edit, false, row.config.id);
+    assert.equal(fs.config?.readImage, false, row.config.id);
+    assert(plugins.some(p => p.name === '@deepseek-ai/dsh-tool-fs-search'), row.config.id);
+    const bash = plugins.find(p => p.name === '@deepseek-ai/dsh-tool-bash');
+    const pwsh = plugins.find(p => p.name === '@deepseek-ai/dsh-tool-pwsh');
+    assert(bash, row.config.id);
+    assert(pwsh, row.config.id);
+    assert.equal(bash.disabled?.__jsExpr, "process.platform === 'win32'", row.config.id);
+    assert.equal(pwsh.disabled?.__jsExpr, "process.platform !== 'win32'", row.config.id);
     if (row.config.id !== 'reliable-dev') assert(!plugins.some(p => p.name === '@deepseek-ai/dsh-tool-subagent'));
   }
 });

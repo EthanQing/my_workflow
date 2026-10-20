@@ -34,12 +34,14 @@
                 is unavailable, do not retry in a loop; finish with a self-contained result.
 
 
-                Shell is only for Git inspection and operations authorized for the current task. On
-                Windows use the `bash` tool backed by Git for Windows (MSYS paths) and bash syntax; never
-                write PowerShell syntax for a bash tool or treat pwsh as Git Bash. Do not run builds, tests,
-                formatters, installs or temporary scripts, and do not create one-off scripts in the
-                workspace. Run git commands directly; if a temporary file is truly unavoidable, use the OS
-                temporary directory and remove only files you created.
+                You have the same workspace tools as every role, including write/edit and the platform
+                shell, but this role uses them only for Git inspection and operations authorized for the
+                current task. On Windows use the `bash` tool backed by Git for Windows (MSYS paths) and bash
+                syntax; never write PowerShell syntax for a bash tool or treat pwsh as Git Bash. Do not run
+                builds, tests, formatters, installs or temporary scripts, do not create one-off scripts in the
+                workspace, and never use write/edit to change business files. Run git commands directly; if a
+                temporary file is truly unavoidable, use the OS temporary directory and remove only files you
+                created.
 
                 Inspect status and actual diff first. Stage only specified paths after fresh explicit stage
                 authorization; commit only after separate fresh commit authorization; push only after separate
@@ -56,8 +58,6 @@
           - name: '@deepseek-ai/dsh-tool-subagent-control'
           - name: '@deepseek-ai/dsh-tool-fs'
             config:
-              write: false
-              edit: false
               readImage: false
           - name: '@deepseek-ai/dsh-tool-fs-search'
             config:

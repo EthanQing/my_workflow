@@ -4,7 +4,7 @@
 
 纯配置的 DeepSeek Harness Plugin Bundle，安装后注册 **Aegis Engineering**，主预设 ID 为 `reliable-dev`。支持桌面端 **0.2.1-rc.2**，源码构建 `332895e0f7c9d4dbfb29729f5eb367fa263ff986`；不支持拿旧版全局 CLI 代替桌面端。不修改 DSH 本体，不自建会话数据库，不含自定义运行时或安装脚本。
 
-Lead 可读文件、搜索源码、检查 Git 和环境；业务写入交给 Coder。六个独立子预设分别为 `aegis-planner`、`aegis-coder`、`aegis-knowledge-curator`、`aegis-reviewer`、`aegis-project-mentor`、`aegis-git-operator`。内部指令为英文，与用户交流默认简体中文。
+七个角色共享同一套工作区工具：文件读取、写入、编辑、搜索和平台 Shell（Windows 上最终为 Git Bash `bash`）。职责由提示词约束，不再靠隐藏工具区分；Lead 仍独占 `aegis_delegate`/`list_agents`，子角色没有二次委派。六个独立子预设分别为 `aegis-planner`、`aegis-coder`、`aegis-knowledge-curator`、`aegis-reviewer`、`aegis-project-mentor`、`aegis-git-operator`。内部指令为英文，与用户交流默认简体中文。
 
 ## 可续聊机制
 
@@ -54,17 +54,19 @@ dsh plugin --profile <profile> add github:EthanQing/my_workflow#<actual-commit-s
 
 ## Windows 与工具边界
 
-Windows 宿主以 DSH desktop 0.2.1-rc.2 + `dsh-gitbash-shell` 0.38.5 为已验证组合。插件把进程级 `ctx.shell` 换成 Git for Windows bash（`bash.exe -c`，当前解析到 `C:/Program Files/Git/bin/bash.exe`），并在会话创建时把“有 pwsh、无 bash”的工具面替换为官方 `bash` 工具、遮蔽伪 `pwsh`。因此 Lead、Coder、Git Operator 在 Windows 上应看到 **`bash`**（MSYS 路径，如 `/c/Users/...`），必须使用 bash 语法；不得对 `bash` 写 PowerShell 语法，也不得把 `pwsh` 当作 Git Bash 使用。若工具面只剩真正的 `pwsh`，说明 Git Bash 集成未生效：使用 PowerShell 方言时须明确说明这一限制，不要伪造工具名。
+Windows 宿主以 DSH desktop 0.2.1-rc.2 + `dsh-gitbash-shell` 0.38.5 为已验证组合。插件把进程级 `ctx.shell` 换成 Git for Windows bash（`bash.exe -c`，当前解析到 `C:/Program Files/Git/bin/bash.exe`），并在会话创建时把“有 pwsh、无 bash”的工具面替换为官方 `bash` 工具、遮蔽伪 `pwsh`。因此七个角色在 Windows 上都应看到 **`bash`**（MSYS 路径，如 `/c/Users/...`），必须使用 bash 语法；不得对 `bash` 写 PowerShell 语法，也不得把 `pwsh` 当作 Git Bash 使用。若工具面只剩真正的 `pwsh`，说明 Git Bash 集成未生效：使用 PowerShell 方言时须明确说明这一限制，不要伪造工具名。
 
-三个有 Shell 的角色保留官方平台工具行（win32 下 `tool-pwsh`、非 win32 下 `tool-bash`）；这是 `dsh-gitbash-shell` 行内补丁的输入，不是最终模型工具名。不要把它静态翻成 `tool-bash`：在未装或未启用 Git Bash 执行器的 Windows profile 上，`bash` 工具会落到 pwsh 执行器，反而制造错配。插件不固化本机可执行文件路径；未安装该插件的 Windows profile 不在本次验证范围内。
+七个预设都保留官方平台工具行（win32 下 `tool-pwsh`、非 win32 下 `tool-bash`）；这是 `dsh-gitbash-shell` 行内补丁的输入，不是最终模型工具名。不要把它静态翻成 `tool-bash`：在未装或未启用 Git Bash 执行器的 Windows profile 上，`bash` 工具会落到 pwsh 执行器，反而制造错配。插件不固化本机可执行文件路径；未安装该插件的 Windows profile 不在本次验证范围内。
 
-支持的 Desktop/Web 组合会禁用 base 层全局模型工具，由各预设提供工具。裸 base 宿主不属于支持范围；用户另装的全局工具插件也可能扩大实际暴露面。Planner、Reviewer、Mentor 没有 Shell 或文件写入工具。Lead/Git Operator 不装文件写入工具。Coder 和 Curator 都有文件写工具，但知识库/源码职责分离、串行写入和审批属于提示词规则；Shell 也能写文件，**这些规则不是系统级权限隔离**。应配合 DSH 宿主权限配置。真实模型是否遵守流程需另做验收。
+支持的 Desktop/Web 组合会禁用 base 层全局模型工具，由各预设提供工具。裸 base 宿主不属于支持范围；用户另装的全局工具插件也可能扩大实际暴露面。
+
+工具访问权限不再用于区分角色。七个预设都能读写文件并运行平台 Shell；Planner、Reviewer、Mentor、Lead、Curator、Git Operator 的只读、只审查、只写知识、只做 Git 等边界都靠提示词自律，而不是靠缺少工具。**这不是系统级安全隔离**：Shell 本身可以修改文件、执行 Git；Windows 上第三方 Git Bash 执行器在受限模式下的实际沙箱行为可能与文件工具不同（插件会标注），文件工具仍受宿主沙箱策略约束。用户选择的 DSH 宿主权限和沙箱、以及用户审批仍然是有效边界；不能声称提示词能百分之百阻止越权行为。真实模型是否遵守流程需另做验收。
 
 ## 日常执行边界
 
 日常开发遵循最小充分验证：文档、注释、简单文案修改只检查修改内容；小范围代码修复优先用一项已有针对性检查；一般功能执行一次最相关的构建或测试；高风险改动只补真正必要的验证；用户明确要求全面测试时按要求执行。默认不新建烟测脚本、不跑全量套件、不重复相同构建、不引入新测试框架或依赖、不做无关检查、不为小任务生成大量报告。确实需要临时验证文件时放在 OS 临时目录，结束前清理自己创建的文件；不得留在业务项目目录，不得改写 `.gitignore` 隐藏，不得用 `git clean` 或通配符删除处理项目文件，也不得删除用户已有文件或合法构建产物。Reviewer 和 Lead 不重复已执行且结果仍有效的检查；安全/数据完整性等高风险改动的关键验证不能省略，未执行项必须如实列为限制。
 
-这些是提示词行为约束，不是系统级强制执行；宿主权限和用户审批仍是最终边界。
+这些是提示词行为约束，不是系统级强制执行；宿主权限、沙箱模式和用户审批仍是最终边界。工具统一不等于提升权限：本 bundle 不会把会话改成 `danger-full-access`，也不会绕过宿主已经拒绝的操作。
 
 ## 测试与人工验收
 

@@ -23,17 +23,28 @@
                 this role and current authorization explicitly allow it.
 
 
-                Read-only teaching on demand. Explain actual architecture, code, call paths, design and
-                technology in Simplified Chinese. Read current code and distinguish facts from assumptions.
-                Accept both post-task explanations and standalone lessons. Never edit files or run shell.
+                Read-only teaching behavior: you have the same workspace tools as every role, including
+                write/edit and the platform shell, but this role must not modify project files, run large
+                tests/builds, install dependencies or create temporary artifacts. Use the shell for quick
+                read-only facts (`git status`, `git log`, `rg` or `grep -R`, `find`, targeted `sed -n`).
+                Explain actual architecture, code, call paths, design and technology in Simplified Chinese.
+                Read current code and distinguish facts from assumptions. Accept post-task explanations and
+                standalone lessons. Prefer a few high-information commands over repeatedly reading whole files.
           - name: '@deepseek-ai/dsh-agent-instructions'
             config:
               maxBytes: 65536
           - name: '@deepseek-ai/dsh-tool-fs'
             config:
-              write: false
-              edit: false
               readImage: false
           - name: '@deepseek-ai/dsh-tool-fs-search'
             config:
               sampleOverCapGlobResults: false
+          # Windows host composition: dsh-gitbash-shell (verified 0.38.5) replaces
+          # ctx.shell with Git for Windows bash and patches a "pwsh without bash"
+          # face into the official bash tool (the fake pwsh is masked). Keep this
+          # official platform pair; do not statically enable tool-bash on Windows
+          # without that executor.
+          - name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'

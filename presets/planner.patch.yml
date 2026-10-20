@@ -34,15 +34,19 @@
                 is unavailable, do not retry in a loop; finish with a self-contained result.
 
 
-                Read-only: investigate only what the current task needs, reuse facts and paths supplied by
-                Lead, and do not repeat a full-project scan. Return a complete but concise decision-ready
-                versioned plan: goal, files/components, behavior, exclusions, symbol evidence, steps, risks,
-                the smallest sufficient non-UI verification and executor, manual acceptance and unknowns. Do
-                not default to a full test suite, new smoke scripts or unrelated checks; keep high-risk
-                verification honest. Decide knowledge impact: CREATE, UPDATE or NO_CHANGE; knowledge absence
-                never blocks development. Empty projects need actual technical choices, not invented
-                architecture. Retain the full plan in this child session for recovery. Never edit files, run
-                shell or create temporary files.
+                Read-only behavior: you have the same workspace tools as every role, including write/edit
+                and the platform shell, but this role must not modify files, run builds/tests or create
+                temporary artifacts. Use the shell only for read-only investigation, and prefer a few
+                high-information commands (`git status`, `git diff`, `git log`, `rg` or `grep -R`, `find`)
+                over repeatedly reading whole files. Investigate only what the current task needs, reuse facts
+                and paths supplied by Lead, and do not repeat a full-project scan. Return a complete but concise
+                decision-ready versioned plan: goal, files/components, behavior, exclusions, symbol evidence,
+                steps, risks, the smallest sufficient non-UI verification and executor, manual acceptance and
+                unknowns. Do not default to a full test suite, new smoke scripts or unrelated checks; keep
+                high-risk verification honest. Decide knowledge impact: CREATE, UPDATE or NO_CHANGE; knowledge
+                absence never blocks development. Empty projects need actual technical choices, not invented
+                architecture. Retain the full plan in this child session for recovery. Never modify files and
+                never create temporary files.
           - name: '@deepseek-ai/dsh-agent-instructions'
             config:
               maxBytes: 65536
@@ -51,9 +55,16 @@
           - name: '@deepseek-ai/dsh-tool-subagent-control'
           - name: '@deepseek-ai/dsh-tool-fs'
             config:
-              write: false
-              edit: false
               readImage: false
           - name: '@deepseek-ai/dsh-tool-fs-search'
             config:
               sampleOverCapGlobResults: false
+          # Windows host composition: dsh-gitbash-shell (verified 0.38.5) replaces
+          # ctx.shell with Git for Windows bash and patches a "pwsh without bash"
+          # face into the official bash tool (the fake pwsh is masked). Keep this
+          # official platform pair; do not statically enable tool-bash on Windows
+          # without that executor.
+          - name: '@deepseek-ai/dsh-tool-bash'
+            disabled: !!js process.platform === 'win32'
+          - name: '@deepseek-ai/dsh-tool-pwsh'
+            disabled: !!js process.platform !== 'win32'

@@ -14,6 +14,8 @@ A configuration-only DeepSeek Harness Plugin Bundle: Lead (`reliable-dev`, displ
 | `aegis-project-mentor` | Read-only teaching in Chinese |
 | `aegis-git-operator` | Separately authorized stage, commit and push |
 
+All seven presets mount the same workspace tool set: file read, write, edit and search, plus the platform shell pair (the Windows face resolves to Git Bash `bash`). Role boundaries are prompt-level rules, not tool restrictions. The Lead alone mounts `aegis_delegate` and `list_agents`; children gain no secondary delegation. Reviewer uses `git status`/`git diff`/`rg` for evidence instead of repeated whole-file reads.
+
 The 0.2.1-rc.2 local `spawn` provider implements continuations automatically; the obsolete `backgroundMode` field is deliberately absent. Lead delegates through one `aegis_delegate` tool with an explicit `agent_preset`, retains the returned child id, and uses `send_message` directly; it falls back to `list_agents` only after a restart, a lost id, or genuinely ambiguous status. A finished activation releases execution resources; persisted sessions survive and can resume. The six roles start only when needed. The host's default `maxActiveSubagents` is 8; tests also exercise limits of 2 and 1. Cold recovery requires retained session storage and the same available preset IDs; it mounts the currently installed preset revision, not a frozen copy of an older bundle.
 
 Planner, Coder, Reviewer and Git Operator can use the official `send_message` tool to ask their direct parent Lead for a decision, report a blocker or material risk, and Lead can steer them while they work. Knowledge Curator and Project Mentor are completion-only. The call returns delivery confirmation, not a reply. Unrelated or idle roles are not queried, woken or broadcast to; normal completion uses the official notice, and history recovery is only for missing results or a broken connection.
@@ -52,15 +54,17 @@ After installing, create a session and select **Aegis Engineering**. Installatio
 
 ## Windows shell
 
-The verified Windows host is DSH desktop 0.2.1-rc.2 with `dsh-gitbash-shell` 0.38.5. The plugin replaces the process-wide `ctx.shell` with Git for Windows bash (`bash.exe -c`; currently `C:/Program Files/Git/bin/bash.exe`) and, for a preset face with `pwsh` but no `bash`, activates the official `bash` tool and masks the fake `pwsh`. Lead, Coder and Git Operator therefore see `bash` with MSYS paths and must use bash syntax. If the face instead exposes a real `pwsh` tool, Git Bash integration is not active: use PowerShell syntax only for genuinely Windows-native operations and state the limitation.
+The verified Windows host is DSH desktop 0.2.1-rc.2 with `dsh-gitbash-shell` 0.38.5. The plugin replaces the process-wide `ctx.shell` with Git for Windows bash (`bash.exe -c`; currently `C:/Program Files/Git/bin/bash.exe`) and, for a preset face with `pwsh` but no `bash`, activates the official `bash` tool and masks the fake `pwsh`. All seven roles therefore see `bash` with MSYS paths and must use bash syntax. If the face instead exposes a real `pwsh` tool, Git Bash integration is not active: use PowerShell syntax only for genuinely Windows-native operations and state the limitation.
 
-The three shell roles intentionally keep the official per-platform tool pair (`tool-pwsh` on win32, `tool-bash` elsewhere) as the plugin's input. Do not statically flip it to `tool-bash`: on a Windows profile without the Git Bash executor, the bash tool would dispatch to the pwsh executor — the mismatch this bundle avoids. Hosts without the plugin are outside the verified scope.
+All seven presets intentionally keep the official per-platform tool pair (`tool-pwsh` on win32, `tool-bash` elsewhere) as the plugin's input. Do not statically flip it to `tool-bash`: on a Windows profile without the Git Bash executor, the bash tool would dispatch to the pwsh executor — the mismatch this bundle avoids. Hosts without the plugin are outside the verified scope.
 
 ## Daily execution boundaries
 
 Daily work uses minimal sufficient verification: inspect docs/comments/text edits; use one existing targeted check for a small fix; run one most relevant build or test for a normal feature; add only genuinely necessary checks for high-risk work; follow an explicit user request for full tests. Do not default to new smoke scripts, full suites, repeated builds, new test frameworks/dependencies, unrelated checks or large reports. When a temporary verification file is unavoidable, put it in the OS temp directory and remove it before finishing; never leave it in the business project, hide it via `.gitignore`, use `git clean`/wildcard deletion, or delete pre-existing user files or legitimate build output. Reviewer and Lead do not rerun checks whose evidence remains valid. Essential verification for security/data-integrity work is not optional, and unrun checks must be reported honestly.
 
 These are prompt-level behavioral rules, not host enforcement; host permissions and user approval remain the final boundary.
+
+Tool access no longer distinguishes roles. Every preset can read, write, edit and run the platform shell; Planner, Reviewer, Mentor, Lead, Curator and Git Operator stay within their prompts by discipline, not by missing tools. This is not system-level isolation. The shell itself can modify files and run Git, and on Windows the third-party Git Bash executor may run confined shell calls under different effective sandbox semantics (the plugin reports this), while file tools remain under the host sandbox policy. The user's DSH permission mode and approval still apply, and prompts cannot guarantee that a model never oversteps.
 
 ## Development and verification
 
@@ -74,7 +78,7 @@ npm pack --dry-run
 
 `AEGIS_TEST_HOME` optionally selects a new isolated test directory. Tests write only there and under the copied runtime's `aegis-test-configs/`; never point this at your installed runtime or personal home. The runtime runner sets `DSH_HOME` for its child process. Test fixtures supply deterministic model output and never load account credentials. See [validation](docs/validation.md) for actual results, installation limitations and manual checks; [architecture](docs/architecture.md) describes boundaries.
 
-This is prompt-driven coordination, not a hardened permission system. The supported Desktop/Web composition disables base-global model tools and lets presets own their surfaces. A bare base host or additional globally registered tools can expose extra capabilities and is outside this tool-boundary guarantee. Coder/Git shell access and Curator path restrictions require correct model behavior and host permissions. Read-only presets omit mutation and shell tools, but prompts are not an OS sandbox. No real-model behavioral acceptance is claimed.
+This is prompt-driven coordination, not a hardened permission system. The supported Desktop/Web composition disables base-global model tools and lets presets own their surfaces. A bare base host or additional globally registered tools can expose extra capabilities and is outside this tool-boundary guarantee. All seven presets now expose mutation and shell tools; role boundaries require correct model behavior and host permissions, and prompts are not an OS sandbox. No real-model behavioral acceptance is claimed.
 
 ## References
 
